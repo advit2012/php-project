@@ -9,25 +9,23 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Use a unique tag, e.g., based on commit hash or build number
-                    def imageTag = "advit2012/akshatnewimg2july:${env.BUILD_NUMBER}"
-                    sh "docker build -t ${imageTag} ."
-                    sh 'docker images'
+                    sh 'sudo docker build -t advit2012/akshatnewimg2july:v1 .'
+                    sh 'sudo docker images'
                 }
             }
         }
         stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'advit2012', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh "docker push advit2012/akshatnewimg2july:${env.BUILD_NUMBER}"
+                    sh "echo $PASS | sudo docker login -u $USER --password-stdin"
+                    sh 'sudo docker push advit2012/akshatnewimg2july:v1'
                 }
             }
         }
         stage('Deploy') {
             steps {
                 script {
-                    def imageTag = "advit2012/akshatnewimg2july:${env.BUILD_NUMBER}"
+                    def imageTag = "advit2012/akshatnewimg2july:v1"
                     def dockerrm = 'sudo docker rm -f My-first-containe2211 || true'
                     def dockerCmd = "sudo docker run -itd --name My-first-containe2211 -p 8083:80 ${imageTag}"
                     
@@ -35,7 +33,7 @@ pipeline {
                         // Remove existing container if exists
                         sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.35.49 ${dockerrm}"
                         // Pull the latest Docker image
-                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.35.49 docker pull ${imageTag}"
+                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.35.49 sudo docker pull ${imageTag}"
                         // Run the new container
                         sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.35.49 ${dockerCmd}"
                     }
