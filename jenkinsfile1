@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    stages {
+        stage('Git Clone') {
+            steps {
+                git url: 'https://github.com/advit2012/php-project/', branch: 'master'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t advit2012/akshatnewimg2july:v1 .'
+                    sh 'docker images'
+                }
+            }
+        }
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'advit2012', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                    sh 'docker push advit2012/akshatnewimg2july:v1'
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    def dockerrm = 'sudo docker rm -f My-first-containe2211 || true'
+                    def dockerPull = 'sudo docker pull advit2012/akshatnewimg2july:v1'
+                    def dockerCmd = 'sudo docker run -itd --name My-first-containe2211 -p 8083:80 advit2012/akshatnewimg2july:v1'
+                    
+                    sshagent(['sshkeypair']) {
+                        // Remove existing container if exists
+                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.35.49 ${dockerrm}"
+                        // Pull the latest Docker image
+                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.35.49 ${dockerPull}"
+                        // Run the new container
+                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.35.49 ${dockerCmd}"
+                    }
+                }
+            }
+        }
+    }
+}
