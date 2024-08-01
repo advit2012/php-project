@@ -7,29 +7,20 @@ pipeline {
             }
         }
         stage('Build Docker Image') {
-    steps {
-        script {
-            def imageName = "advit2012/akshatnewimg2july:v2" // Change version accordingly
-            sh "docker build -t ${imageName} ."
-            sh 'docker images'
+            steps {
+                script {
+                    // Change version accordingly
+                    def imageName = "advit2012/akshatnewimg2july:v2"
+                    sh "docker build -t ${imageName} ."
+                    sh 'docker images'
+                }
+            }
         }
-    }
-}
-
-stage('Docker Login and Push') {
-    steps {
-        withCredentials([usernamePassword(credentialsId: 'advit2012', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-            sh "echo $PASS | docker login -u $USER --password-stdin"
-            sh "docker push ${imageName}"
-        }
-    }
-}
-
-        stage('Docker Login') {
+        stage('Docker Login and Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'advit2012', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                     sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh 'docker push advit2012/akshatnewimg2july:v1'
+                    sh "docker push ${imageName}"
                 }
             }
         }
@@ -37,8 +28,8 @@ stage('Docker Login and Push') {
             steps {
                 script {
                     def dockerrm = 'sudo docker rm -f My-first-containe2211 || true'
-                    def dockerPull = 'sudo docker pull advit2012/akshatnewimg2july:v1'
-                    def dockerCmd = 'sudo docker run -itd --name My-first-containe2211 -p 8083:80 advit2012/akshatnewimg2july:v1'
+                    def dockerPull = 'sudo docker pull advit2012/akshatnewimg2july:v2'  // Use the correct image tag
+                    def dockerCmd = 'sudo docker run -itd --name My-first-containe2211 -p 8083:80 advit2012/akshatnewimg2july:v2'
                     
                     sshagent(['sshkeypair']) {
                         // Remove existing container if exists
